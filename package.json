@@ -1,0 +1,21 @@
+{
+  "name": "subagents",
+  "version": "1.0.0",
+  "description": "",
+  "repository": {
+    "type": "git",
+    "url": "https://gitea.proaxia-consulting.com/posiadly/subagents.git"
+  },
+  "type": "commonjs",
+  "main": "dist/apps.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "start": "node dist/apps.js"
+  },
+  "devDependencies": {
+    "@types/node": "^26.5.1",
+    "prettier": "^3.9.6",
+    "typescript": "^7.0.2"
+  }
+}
