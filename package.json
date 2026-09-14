@@ -1,17 +1,21 @@
 {
   "name": "subagents",
   "version": "1.0.0",
-  "description": "",
+  "description": "Class-based multi-level multi-agent framework with delegate/message function calling on SAP AI Core",
   "repository": {
     "type": "git",
     "url": "https://gitea.proaxia-consulting.com/posiadly/subagents.git"
   },
-  "type": "commonjs",
+  "type": "module",
   "main": "dist/apps.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
-    "start": "node dist/apps.js"
+    "start": "node dist/apps.js",
+    "dev": "tsc && node dist/apps.js"
+  },
+  "dependencies": {
+    "@sap-ai-sdk/orchestration": "^2.15.0",
+    "dotenv": "^17.2.3"
   },
   "devDependencies": {
     "@types/node": "^26.5.1",
