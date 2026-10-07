@@ -1,4 +1,4 @@
-import type { ChatCompletionTool } from '@sap-ai-sdk/orchestration';
+import type { LlmTool } from './llm.js';
 import type { ToolContext } from './types.js';
 
 export type ToolExecute = (
@@ -14,7 +14,7 @@ export class Tool {
     public readonly execute: ToolExecute,
   ) {}
 
-  toChatCompletionTool(): ChatCompletionTool {
+  toLlmTool(): LlmTool {
     return {
       type: 'function',
       function: {

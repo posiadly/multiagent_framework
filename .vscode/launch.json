@@ -5,13 +5,16 @@
       "type": "node",
       "request": "launch",
       "name": "Debug subagents",
-      "program": "${workspaceFolder}/dist/apps.js",
-      "cwd": "${workspaceFolder}",
+      "program": "${workspaceFolder}/examples/console/dist/apps.js",
+      "cwd": "${workspaceFolder}/examples/console",
       "console": "integratedTerminal",
       "envFile": "${workspaceFolder}/.env",
-      "preLaunchTask": "tsc: build - tsconfig.json",
+      "preLaunchTask": "tsc: build - examples/console/tsconfig.json",
       "sourceMaps": true,
-      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+      "outFiles": [
+        "${workspaceFolder}/examples/console/dist/**/*.js",
+        "${workspaceFolder}/packages/multiagent/dist/**/*.js"
+      ]
     }
   ]
 }

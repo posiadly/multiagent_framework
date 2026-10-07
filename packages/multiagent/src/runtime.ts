@@ -1,14 +1,13 @@
-import type { ChatCompletionTool } from "@sap-ai-sdk/orchestration";
-import type { LlmClient } from "../llm/llm-client.js";
-import { Agent } from "./agent.js";
-import { AgentThread } from "./thread.js";
-import { Tool } from "./tool.js";
+import type { Llm, LlmTool } from './llm.js';
+import { Agent } from './agent.js';
+import { AgentThread } from './thread.js';
+import { Tool } from './tool.js';
 import {
   SuspendError,
   waitingResult,
   type ThreadOutcome,
   type ToolContext,
-} from "./types.js";
+} from './types.js';
 
 export class Runtime {
   private readonly agents = new Map<string, Agent>();
@@ -17,7 +16,7 @@ export class Runtime {
   private rootThread: AgentThread | undefined;
 
   constructor(
-    private readonly llm: LlmClient,
+    private readonly llm: Llm,
     private readonly log: (line: string) => void = (line) =>
       console.error(line),
   ) {}
@@ -32,7 +31,7 @@ export class Runtime {
 
   getRootAgent(): Agent {
     if (!this.rootAgent) {
-      throw new Error("Root agent is not registered");
+      throw new Error('Root agent is not registered');
     }
     return this.rootAgent;
   }
@@ -48,16 +47,16 @@ export class Runtime {
       this.rootThread = new AgentThread(root.id);
       this.threads.set(this.rootThread.threadId, this.rootThread);
       this.rootThread.append({
-        role: "system",
+        role: 'system',
         content: root.systemPrompt,
       });
     }
 
-    this.rootThread.append({ role: "user", content: userMessage });
-    this.rootThread.status = "running";
+    this.rootThread.append({ role: 'user', content: userMessage });
+    this.rootThread.status = 'running';
 
     const outcome = await this.loop(this.rootThread);
-    if (outcome.type === "waiting") {
+    if (outcome.type === 'waiting') {
       return waitingResult(outcome.question);
     }
     return outcome.text;
@@ -97,25 +96,25 @@ export class Runtime {
 
   private createDelegateTool(): Tool {
     return new Tool(
-      "delegate",
-      "Delegate a task to a direct child agent. Returns the child result, or WAITING: <question> if the child needs clarification.",
+      'delegate',
+      'Delegate a task to a direct child agent. Returns the child result, or WAITING: <question> if the child needs clarification.',
       {
-        type: "object",
+        type: 'object',
         properties: {
           agentId: {
-            type: "string",
-            description: "Id of the child agent to run",
+            type: 'string',
+            description: 'Id of the child agent to run',
           },
           task: {
-            type: "string",
-            description: "Task description for the child agent",
+            type: 'string',
+            description: 'Task description for the child agent',
           },
         },
-        required: ["agentId", "task"],
+        required: ['agentId', 'task'],
       },
       async (args, ctx) => {
-        const agentId = String(args["agentId"] ?? "");
-        const task = String(args["task"] ?? "");
+        const agentId = String(args['agentId'] ?? '');
+        const task = String(args['task'] ?? '');
         return this.handleDelegate(ctx, agentId, task);
       },
     );
@@ -131,25 +130,25 @@ export class Runtime {
     }
 
     return new Tool(
-      "message",
-      `Send a message to another agent. Allowed targets: ${targets.join("; ")}. Messaging your parent suspends you until they reply. Messaging a waiting child resumes them.`,
+      'message',
+      `Send a message to another agent. Allowed targets: ${targets.join('; ')}. Messaging your parent suspends you until they reply. Messaging a waiting child resumes them.`,
       {
-        type: "object",
+        type: 'object',
         properties: {
           agentId: {
-            type: "string",
-            description: "Target agent id (parent or direct child)",
+            type: 'string',
+            description: 'Target agent id (parent or direct child)',
           },
           content: {
-            type: "string",
-            description: "Question to the parent, or answer to a child",
+            type: 'string',
+            description: 'Question to the parent, or answer to a child',
           },
         },
-        required: ["agentId", "content"],
+        required: ['agentId', 'content'],
       },
       async (args, ctx) => {
-        const agentId = String(args["agentId"] ?? "");
-        const content = String(args["content"] ?? "");
+        const agentId = String(args['agentId'] ?? '');
+        const content = String(args['content'] ?? '');
         return this.handleMessage(ctx, agentId, content);
       },
     );
@@ -173,7 +172,7 @@ export class Runtime {
     this.threads.set(childThread.threadId, childThread);
 
     const outcome = await this.runChildThread(childThread, task);
-    if (outcome.type === "waiting") {
+    if (outcome.type === 'waiting') {
       this.log(
         `[${ctx.agent.id}] tool_result:delegate WAITING: ${outcome.question}`,
       );
@@ -195,7 +194,7 @@ export class Runtime {
       this.log(
         `[${ctx.agent.id}] tool:message → parent ${targetId}: ${content}`,
       );
-      ctx.thread.status = "waiting";
+      ctx.thread.status = 'waiting';
       ctx.thread.pendingMessage = {
         toolCallId: ctx.toolCallId,
         content,
@@ -224,7 +223,7 @@ export class Runtime {
     }
 
     const outcome = await this.resumeThread(childThread, content);
-    if (outcome.type === "waiting") {
+    if (outcome.type === 'waiting') {
       this.log(
         `[${ctx.agent.id}] tool_result:message WAITING: ${outcome.question}`,
       );
@@ -242,9 +241,9 @@ export class Runtime {
     task: string,
   ): Promise<ThreadOutcome> {
     const agent = this.requireAgent(thread.agentId);
-    thread.status = "running";
-    thread.append({ role: "system", content: agent.systemPrompt });
-    thread.append({ role: "user", content: task });
+    thread.status = 'running';
+    thread.append({ role: 'system', content: agent.systemPrompt });
+    thread.append({ role: 'user', content: task });
     return this.loop(thread);
   }
 
@@ -260,12 +259,12 @@ export class Runtime {
     }
 
     thread.append({
-      role: "tool",
+      role: 'tool',
       content: answer,
       tool_call_id: pending.toolCallId,
     });
     thread.pendingMessage = undefined;
-    thread.status = "running";
+    thread.status = 'running';
     this.log(`[${thread.agentId}] resumed with: ${answer}`);
     return this.loop(thread);
   }
@@ -278,7 +277,7 @@ export class Runtime {
       if (
         thread.parentThreadId === parentThreadId &&
         thread.agentId === childAgentId &&
-        thread.status === "waiting"
+        thread.status === 'waiting'
       ) {
         return thread;
       }
@@ -289,24 +288,22 @@ export class Runtime {
   private async loop(thread: AgentThread): Promise<ThreadOutcome> {
     const agent = this.requireAgent(thread.agentId);
     const tools = this.buildTools(agent);
-    const chatTools: ChatCompletionTool[] = tools.map((tool) =>
-      tool.toChatCompletionTool(),
-    );
+    const chatTools: LlmTool[] = tools.map((tool) => tool.toLlmTool());
 
     while (true) {
       const result = await this.llm.chat(thread.messages, chatTools);
       thread.append(result.assistantMessage);
 
       if (!result.toolCalls?.length) {
-        thread.status = "completed";
-        return { type: "completed", text: result.content ?? "" };
+        thread.status = 'completed';
+        return { type: 'completed', text: result.content ?? '' };
       }
 
       for (const call of result.toolCalls) {
         const tool = tools.find((item) => item.name === call.function.name);
         if (!tool) {
           thread.append({
-            role: "tool",
+            role: 'tool',
             content: `Error: unknown tool "${call.function.name}"`,
             tool_call_id: call.id,
           });
@@ -315,14 +312,14 @@ export class Runtime {
 
         let args: Record<string, unknown> = {};
         try {
-          args = JSON.parse(call.function.arguments || "{}") as Record<
+          args = JSON.parse(call.function.arguments || '{}') as Record<
             string,
             unknown
           >;
         } catch {
           thread.append({
-            role: "tool",
-            content: "Error: invalid tool arguments JSON",
+            role: 'tool',
+            content: 'Error: invalid tool arguments JSON',
             tool_call_id: call.id,
           });
           continue;
@@ -338,19 +335,19 @@ export class Runtime {
         try {
           const toolResult = await tool.execute(args, ctx);
           thread.append({
-            role: "tool",
+            role: 'tool',
             content: toolResult,
             tool_call_id: call.id,
           });
         } catch (error) {
           if (error instanceof SuspendError) {
-            thread.status = "waiting";
-            return { type: "waiting", question: error.question };
+            thread.status = 'waiting';
+            return { type: 'waiting', question: error.question };
           }
           const message =
             error instanceof Error ? error.message : String(error);
           thread.append({
-            role: "tool",
+            role: 'tool',
             content: `Error: ${message}`,
             tool_call_id: call.id,
           });

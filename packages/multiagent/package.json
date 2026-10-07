@@ -1,0 +1,42 @@
+{
+  "name": "@proaxia/multiagent",
+  "version": "1.0.0",
+  "description": "Class-based multi-level multi-agent framework with a swappable LLM proxy",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/posiadly/multiagent_framework.git",
+    "directory": "packages/multiagent"
+  },
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./sap": {
+      "types": "./dist/sap.d.ts",
+      "import": "./dist/sap.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "peerDependencies": {
+    "@sap-ai-sdk/orchestration": "^2.15.0"
+  },
+  "peerDependenciesMeta": {
+    "@sap-ai-sdk/orchestration": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@sap-ai-sdk/orchestration": "^2.15.0",
+    "@types/node": "^26.5.1",
+    "typescript": "^7.0.2"
+  }
+}

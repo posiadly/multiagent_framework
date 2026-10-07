@@ -5,21 +5,64 @@ Class-based TypeScript framework for multi-level agent hierarchies with a custom
 - `delegate` — start a child agent on a task
 - `message` — ask/escalate to a **parent** (suspend + `WAITING`) or answer/resume a **child**
 
-LLM calls go through SAP AI Core via `@sap-ai-sdk/orchestration`.
+The reusable library is `@proaxia/multiagent`. It does not read environment variables. The application constructs an LLM proxy and passes credentials, the model name, and any host into it.
+
+## Workspace
+
+One git repo, two npm packages:
+
+```
+packages/multiagent/   # @proaxia/multiagent
+examples/console/      # football console demo (multiagent-console)
+```
+
+`npm run build` compiles the library first, then the example. `npm start` and `npm run dev` run the console example.
+
+## LLM proxies
+
+| Proxy | Factory | Import |
+| --- | --- | --- |
+| SAP Orchestration | `createSapOrchestrationLlm({ model, serviceKey })` | `@proaxia/multiagent/sap` |
+| OpenRouter | `createOpenRouterLlm({ apiKey, model })` | `@proaxia/multiagent` |
+| Ollama | `createOllamaLlm({ baseUrl, apiKey, model })` | `@proaxia/multiagent` |
+
+OpenRouter and Ollama share one OpenAI-compatible chat client. SAP Orchestration stays separate because it splits the latest tool results into `messages` and the rest into `messagesHistory`.
+
+`@sap-ai-sdk/orchestration` is an optional peer dependency of the library, so apps that use OpenRouter or Ollama do not load it. The console example depends on it directly.
+
+```ts
+import { Agent, Runtime, createOllamaLlm } from "@proaxia/multiagent";
+import { createSapOrchestrationLlm } from "@proaxia/multiagent/sap";
+
+const runtime = new Runtime(
+  createSapOrchestrationLlm({
+    model: "gpt-4o",
+    serviceKey: serviceKeyJson,
+  }),
+);
+
+const ollamaRuntime = new Runtime(
+  createOllamaLlm({
+    baseUrl: "http://localhost:11434",
+    apiKey,
+    model: "llama3.1",
+  }),
+);
+```
 
 ## Hierarchy (demo)
 
 ```
-User → root (ogólne tematy)
-         └── football (piłka nożna ogólnie)
+User → root (general topics)
+         └── football (football in general)
                ├── psg
                └── arsenal
 ```
 
-1. Root rozmawia o wszystkim poza piłką; tematy piłkarskie `delegate` → `football`.
-2. `football` mówi o piłce ogólnie; PSG → `delegate` do `psg`, Arsenal → `delegate` do `arsenal`.
-3. Specjaliści mogą `message` do `football` (WAITING); `football` odpowiada lokalnie albo eskaluje do `root`.
-4. Root może odpowiedzieć sam albo dopytać użytkownika, potem `message` w dół.
+1. Root talks about everything except football; football topics `delegate` → `football`.
+2. `football` covers football in general; PSG → `delegate` to `psg`, Arsenal → `delegate` to `arsenal`.
+3. Specialists can `message` `football` (`WAITING`); `football` answers locally or escalates to `root`.
+4. Root can answer itself or ask the user, then `message` downward.
 
 ## Setup
 
@@ -29,13 +72,17 @@ User → root (ogólne tematy)
 npm install
 ```
 
-2. Copy env template and set AI Core credentials:
+2. Copy the env template and fill in the provider you want. The file stays at the repo root; the example loads it with `--env-file=../../.env`.
 
 ```bash
 cp .env.example .env
 ```
 
-Set `AICORE_SERVICE_KEY` to your AI Core service key JSON (as expected by the SAP AI SDK). Optionally set `AICORE_MODEL` (default `gpt-4o`).
+Set `LLM_PROVIDER` to one of:
+
+- `sap` — `AICORE_SERVICE_KEY` (AI Core service-key JSON) and optional `AICORE_MODEL` (default `gpt-4o`)
+- `openrouter` — `OPENROUTER_API_KEY` and `OPENROUTER_MODEL`
+- `ollama` — `OLLAMA_BASE_URL`, `OLLAMA_API_KEY`, and `OLLAMA_MODEL`
 
 3. Build and run the console UI:
 
@@ -48,33 +95,27 @@ Talk to the **root** agent. Use `/exit` or `/quit` to leave.
 
 Runtime tool traces (`delegate` / `message`) are printed on stderr.
 
-## Project layout
-
-```
-src/
-  framework/   # Agent, Tool, AgentThread, Runtime
-  llm/         # LlmClient (OrchestrationClient + function calling)
-  demo/        # Root / Mid / Leaf prompts and tree wiring
-  cli/         # ConsoleApp (readline)
-  apps.ts      # Entry point
-```
-
 ## Defining agents
 
 ```ts
-import { Agent, Runtime } from './framework/index.js';
-import { LlmClient } from './llm/llm-client.js';
+import { Agent, Runtime, createOllamaLlm } from "@proaxia/multiagent";
 
-const arsenal = new Agent('arsenal', 'Jesteś specjalistą od Arsenalu…');
-const football = new Agent('football', 'Jesteś ekspertem od piłki…');
-const root = new Agent('root', 'Rozmawiasz na ogólne tematy…');
+const arsenal = new Agent("arsenal", "You are an Arsenal specialist…");
+const football = new Agent("football", "You are a football expert…");
+const root = new Agent("root", "You chat about general topics…");
 
 football.addChild(arsenal);
 root.addChild(football);
 
-const runtime = new Runtime(new LlmClient());
+const runtime = new Runtime(
+  createOllamaLlm({
+    baseUrl: "http://localhost:11434",
+    apiKey,
+    model: "llama3.1",
+  }),
+);
 runtime.registerTree(root);
-const reply = await runtime.chat('Co sądzisz o ostatnim meczu Arsenalu?');
+const reply = await runtime.chat("What do you think of Arsenal's last match?");
 ```
 
 Communication tools (`delegate`, `message`) are injected by the Runtime from the tree shape. Pass optional domain `Tool` instances into the `Agent` constructor.

@@ -3,13 +3,20 @@
   "tasks": [
     {
       "type": "typescript",
-      "tsconfig": "tsconfig.json",
+      "tsconfig": "packages/multiagent/tsconfig.json",
       "problemMatcher": ["$tsc"],
+      "label": "tsc: build - packages/multiagent/tsconfig.json"
+    },
+    {
+      "type": "typescript",
+      "tsconfig": "examples/console/tsconfig.json",
+      "problemMatcher": ["$tsc"],
+      "dependsOn": ["tsc: build - packages/multiagent/tsconfig.json"],
       "group": {
         "kind": "build",
         "isDefault": true
       },
-      "label": "tsc: build - tsconfig.json"
+      "label": "tsc: build - examples/console/tsconfig.json"
     }
   ]
 }

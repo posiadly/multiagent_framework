@@ -1,6 +1,6 @@
 import * as readline from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
-import type { Runtime } from '../framework/runtime.js';
+import type { Runtime } from '@proaxia/multiagent';
 
 export class ConsoleApp {
   constructor(private readonly runtime: Runtime) {}

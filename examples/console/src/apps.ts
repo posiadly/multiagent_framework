@@ -1,12 +1,13 @@
-import 'dotenv/config';
+import { Runtime } from '@proaxia/multiagent';
 import { ConsoleApp } from './cli/console-app.js';
+import { createLlm } from './create-llm.js';
 import { buildDemoTree } from './demo/agents.js';
-import { Runtime } from './framework/runtime.js';
-import { LlmClient } from './llm/llm-client.js';
 
 async function main(): Promise<void> {
-  const llm = new LlmClient();
-  const runtime = new Runtime(llm, (line) => console.error(`[runtime] ${line}`));
+  const llm = createLlm();
+  const runtime = new Runtime(llm, (line) =>
+    console.error(`[runtime] ${line}`),
+  );
   runtime.registerTree(buildDemoTree());
 
   const app = new ConsoleApp(runtime);

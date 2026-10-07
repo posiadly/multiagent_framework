@@ -1,21 +1,20 @@
 {
   "name": "subagents",
   "version": "1.0.0",
-  "description": "Class-based multi-level multi-agent framework with delegate/message function calling on SAP AI Core",
+  "private": true,
+  "description": "Workspace for the @proaxia/multiagent library and the football console example",
   "repository": {
     "type": "git",
-    "url": "https://gitea.proaxia-consulting.com/posiadly/subagents.git"
+    "url": "https://github.com/posiadly/multiagent_framework.git"
   },
-  "type": "module",
-  "main": "dist/apps.js",
+  "workspaces": [
+    "packages/*",
+    "examples/*"
+  ],
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/apps.js",
-    "dev": "tsc && node dist/apps.js"
-  },
-  "dependencies": {
-    "@sap-ai-sdk/orchestration": "^2.15.0",
-    "dotenv": "^17.2.3"
+    "build": "npm run build --workspace=@proaxia/multiagent && npm run build --workspace=multiagent-console",
+    "start": "npm start --workspace=multiagent-console",
+    "dev": "npm run build --workspace=@proaxia/multiagent && npm run dev --workspace=multiagent-console"
   },
   "devDependencies": {
     "@types/node": "^26.5.1",

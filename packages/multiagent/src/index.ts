@@ -11,3 +11,8 @@ export type {
   PendingMessage,
 } from './types.js';
 export { waitingResult, parseWaitingResult, SuspendError } from './types.js';
+export type { Llm, LlmChatResult, LlmTool } from './llm.js';
+export { createOpenRouterLlm } from './openrouter-llm.js';
+export type { OpenRouterLlmOptions } from './openrouter-llm.js';
+export { createOllamaLlm } from './ollama-llm.js';
+export type { OllamaLlmOptions } from './ollama-llm.js';

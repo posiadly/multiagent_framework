@@ -1,4 +1,4 @@
-import { Agent } from '../framework/agent.js';
+import { Agent } from '@proaxia/multiagent';
 
 /**
  * Demo tree:
