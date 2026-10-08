@@ -2,6 +2,8 @@ export { Agent } from './agent.js';
 export { AgentThread } from './thread.js';
 export { Tool } from './tool.js';
 export { Runtime } from './runtime.js';
+export type { McpServerConfig, McpConnection } from './mcp.js';
+export { connectMcpServer, connectMcpServers } from './mcp.js';
 export type {
   ChatMessage,
   ToolCall,

@@ -2,7 +2,7 @@
   "name": "subagents",
   "version": "1.0.0",
   "private": true,
-  "description": "Workspace for the @proaxia/multiagent library and the football console example",
+  "description": "Workspace for the @proaxia/multiagent library, internet-search MCP, and football console example",
   "repository": {
     "type": "git",
     "url": "https://github.com/posiadly/multiagent_framework.git"
@@ -12,9 +12,9 @@
     "examples/*"
   ],
   "scripts": {
-    "build": "npm run build --workspace=@proaxia/multiagent && npm run build --workspace=multiagent-console",
+    "build": "npm run build --workspace=@proaxia/multiagent && npm run build --workspace=internet-search-mcp && npm run build --workspace=multiagent-console",
     "start": "npm start --workspace=multiagent-console",
-    "dev": "npm run build --workspace=@proaxia/multiagent && npm run dev --workspace=multiagent-console"
+    "dev": "npm run build --workspace=@proaxia/multiagent && npm run build --workspace=internet-search-mcp && npm run dev --workspace=multiagent-console"
   },
   "devDependencies": {
     "@types/node": "^26.5.1",

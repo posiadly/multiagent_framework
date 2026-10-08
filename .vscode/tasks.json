@@ -9,9 +9,19 @@
     },
     {
       "type": "typescript",
-      "tsconfig": "examples/console/tsconfig.json",
+      "tsconfig": "examples/internet-search-mcp/tsconfig.json",
       "problemMatcher": ["$tsc"],
       "dependsOn": ["tsc: build - packages/multiagent/tsconfig.json"],
+      "label": "tsc: build - examples/internet-search-mcp/tsconfig.json"
+    },
+    {
+      "type": "typescript",
+      "tsconfig": "examples/console/tsconfig.json",
+      "problemMatcher": ["$tsc"],
+      "dependsOn": [
+        "tsc: build - packages/multiagent/tsconfig.json",
+        "tsc: build - examples/internet-search-mcp/tsconfig.json"
+      ],
       "group": {
         "kind": "build",
         "isDefault": true

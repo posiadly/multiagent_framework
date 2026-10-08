@@ -1,5 +1,9 @@
 import type { Llm, LlmTool } from './llm.js';
 import { Agent } from './agent.js';
+import {
+  connectMcpServers,
+  type McpConnection,
+} from './mcp.js';
 import { AgentThread } from './thread.js';
 import { Tool } from './tool.js';
 import {
@@ -12,6 +16,8 @@ import {
 export class Runtime {
   private readonly agents = new Map<string, Agent>();
   private readonly threads = new Map<string, AgentThread>();
+  private readonly mcpToolsByAgent = new Map<string, Tool[]>();
+  private mcpConnections: McpConnection[] = [];
   private rootAgent: Agent | undefined;
   private rootThread: AgentThread | undefined;
 
@@ -21,12 +27,15 @@ export class Runtime {
       console.error(line),
   ) {}
 
-  registerTree(root: Agent): void {
+  async registerTree(root: Agent): Promise<void> {
+    await this.closeMcpConnections();
     this.agents.clear();
+    this.mcpToolsByAgent.clear();
     this.indexAgent(root);
     this.rootAgent = root;
     this.rootThread = undefined;
     this.threads.clear();
+    await this.connectAgentMcps(root);
   }
 
   getRootAgent(): Agent {
@@ -72,6 +81,30 @@ export class Runtime {
     }
   }
 
+  private async connectAgentMcps(agent: Agent): Promise<void> {
+    if (agent.mcps.length > 0) {
+      this.log(
+        `[${agent.id}] connecting ${agent.mcps.length} MCP server(s)...`,
+      );
+      const { tools, connections } = await connectMcpServers(agent.mcps);
+      this.mcpConnections.push(...connections);
+      this.mcpToolsByAgent.set(agent.id, tools);
+      this.log(
+        `[${agent.id}] MCP tools: ${tools.map((t) => t.name).join(', ') || '(none)'}`,
+      );
+    }
+
+    for (const child of agent.children.values()) {
+      await this.connectAgentMcps(child);
+    }
+  }
+
+  private async closeMcpConnections(): Promise<void> {
+    const previous = this.mcpConnections;
+    this.mcpConnections = [];
+    await Promise.all(previous.map((c) => c.close().catch(() => undefined)));
+  }
+
   private requireAgent(id: string): Agent {
     const agent = this.agents.get(id);
     if (!agent) {
@@ -81,7 +114,10 @@ export class Runtime {
   }
 
   private buildTools(agent: Agent): Tool[] {
-    const tools = [...agent.tools];
+    const tools = [
+      ...agent.tools,
+      ...(this.mcpToolsByAgent.get(agent.id) ?? []),
+    ];
 
     if (agent.hasChildren) {
       tools.push(this.createDelegateTool());

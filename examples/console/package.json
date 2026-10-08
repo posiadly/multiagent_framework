@@ -12,7 +12,8 @@
   "dependencies": {
     "@proaxia/multiagent": "*",
     "@sap-ai-sdk/orchestration": "^2.15.0",
-    "dotenv": "^17.2.3"
+    "dotenv": "^17.2.3",
+    "internet-search-mcp": "*"
   },
   "devDependencies": {
     "@types/node": "^26.5.1",

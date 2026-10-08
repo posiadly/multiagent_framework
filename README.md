@@ -9,14 +9,15 @@ The reusable library is `@proaxia/multiagent`. It does not read environment vari
 
 ## Workspace
 
-One git repo, two npm packages:
+One git repo, three npm packages:
 
 ```
-packages/multiagent/   # @proaxia/multiagent
-examples/console/      # football console demo (multiagent-console)
+packages/multiagent/              # @proaxia/multiagent
+examples/internet-search-mcp/     # local MCP: web_search + read_url
+examples/console/                 # football console demo (multiagent-console)
 ```
 
-`npm run build` compiles the library first, then the example. `npm start` and `npm run dev` run the console example.
+`npm run build` compiles the library, the internet-search MCP, then the console. `npm start` and `npm run dev` run the console example (which starts the MCP in-process).
 
 ## LLM proxies
 
@@ -84,6 +85,12 @@ Set `LLM_PROVIDER` to one of:
 - `openrouter` — `OPENROUTER_API_KEY` and `OPENROUTER_MODEL`
 - `ollama` — `OLLAMA_BASE_URL`, `OLLAMA_API_KEY`, and `OLLAMA_MODEL`
 
+Optional for the football agent’s internet tools:
+
+- `JINA_API_KEY` — Jina Reader (scrape) used by the local `internet-search` MCP
+- `MCP_API_KEY` — optional Bearer on the local MCP HTTP port (client sends the same key)
+- `INTERNET_SEARCH_MCP_HOST` / `INTERNET_SEARCH_MCP_PORT` — listen address (defaults `127.0.0.1:3921`)
+
 3. Build and run the console UI:
 
 ```bash
@@ -114,8 +121,40 @@ const runtime = new Runtime(
     model: "llama3.1",
   }),
 );
-runtime.registerTree(root);
+await runtime.registerTree(root);
 const reply = await runtime.chat("What do you think of Arsenal's last match?");
 ```
 
-Communication tools (`delegate`, `message`) are injected by the Runtime from the tree shape. Pass optional domain `Tool` instances into the `Agent` constructor.
+Communication tools (`delegate`, `message`) are injected by the Runtime from the tree shape. Pass optional domain `Tool` instances and/or `McpServerConfig[]` into the `Agent` constructor.
+
+## MCP tools
+
+Each agent may attach multiple Streamable HTTP MCP servers. Config is supplied by the app (the library does not hardcode servers or read env):
+
+```ts
+import { Agent, Runtime, type McpServerConfig } from "@proaxia/multiagent";
+
+const mcps: McpServerConfig[] = [
+  {
+    id: "internet-search",
+    url: "http://127.0.0.1:3921/mcp",
+    apiKey: process.env.MCP_API_KEY, // optional Bearer
+  },
+];
+
+const football = new Agent("football", "…", [], mcps);
+await runtime.registerTree(root);
+```
+
+Tool names are prefixed as `${id}__${mcpToolName}` so several servers can coexist with `delegate` / `message`.
+
+### Demo: `internet-search`
+
+The console starts [`examples/internet-search-mcp`](examples/internet-search-mcp) and attaches it to **football** only:
+
+| Tool | Role |
+| --- | --- |
+| `internet-search__web_search` | DuckDuckGo via `duck-duck-scrape` |
+| `internet-search__read_url` | Page content via Jina Reader (`r.jina.ai`) |
+
+Set `JINA_API_KEY` for authenticated Reader access (higher limits). See [docs/03_mcp_attachment.md](docs/03_mcp_attachment.md).

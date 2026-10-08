@@ -1,0 +1,29 @@
+{
+  "name": "internet-search-mcp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local Streamable HTTP MCP server: DuckDuckGo search + Jina Reader scrape",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node --env-file=../../.env dist/cli.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "duck-duck-scrape": "^2.2.7",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.5.1",
+    "typescript": "^7.0.2"
+  }
+}

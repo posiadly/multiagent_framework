@@ -1,9 +1,9 @@
-import { Agent } from '@proaxia/multiagent';
+import { Agent, type McpServerConfig } from '@proaxia/multiagent';
 
 /**
  * Demo tree:
  *   root (general chat)
- *     └── football (general football)
+ *     └── football (general football) + internet-search MCP
  *           ├── psg
  *           └── arsenal
  *
@@ -12,7 +12,7 @@ import { Agent } from '@proaxia/multiagent';
  * stays with the football agent. Children may `message` upward if they need
  * clarification; parents may answer locally or escalate / ask the user.
  */
-export function buildDemoTree(): Agent {
+export function buildDemoTree(footballMcps: McpServerConfig[] = []): Agent {
   const psg = new Agent(
     'psg',
     [
@@ -48,12 +48,26 @@ export function buildDemoTree(): Agent {
       'If the topic is about PSG or Paris Saint-Germain — use the delegate tool with agentId "psg".',
       'If the topic is about Arsenal — use the delegate tool with agentId "arsenal".',
       'Handle other football topics yourself, without delegation.',
+      'You have internet tools from the internet-search MCP:',
+      'internet-search__web_search (DuckDuckGo) only finds candidate URLs/snippets — not enough to answer facts.',
+      'internet-search__read_url (Jina Reader) fetches the real page content.',
+      'Required workflow for any fact you need from the web (scores, news, Wikipedia, populations, etc.):',
+      '1) call internet-search__web_search,',
+      '2) pick the best URL(s) from the results,',
+      '3) call internet-search__read_url on that URL (especially Wikipedia / primary sources),',
+      '4) only then answer from the scraped content.',
+      'Never answer from search titles/snippets alone. Never invent missing facts.',
+      'When you have the final answer, reply with plain text only (no tools).',
+      'Do not use message to send the final answer to root — finishing without tools returns it via delegate.',
+      'Use message with agentId "root" only when you need clarification you cannot resolve yourself.',
       'If delegate or message returns WAITING: <question>, decide:',
       '1) answer yourself via message to the child if you know the answer,',
       '2) or escalate to the parent: message with agentId "root" and the question.',
       'Do not talk directly to the end user — return the result upward to root.',
       'When a child finishes, pass a concise answer upward.',
     ].join(' '),
+    [],
+    footballMcps,
   );
 
   const root = new Agent(

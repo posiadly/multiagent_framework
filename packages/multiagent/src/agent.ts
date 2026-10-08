@@ -1,3 +1,4 @@
+import type { McpServerConfig } from './mcp.js';
 import type { Tool } from './tool.js';
 
 export class Agent {
@@ -8,6 +9,7 @@ export class Agent {
     public readonly id: string,
     public readonly systemPrompt: string,
     public readonly tools: Tool[] = [],
+    public readonly mcps: McpServerConfig[] = [],
   ) {}
 
   get isRoot(): boolean {

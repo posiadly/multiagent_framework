@@ -13,6 +13,7 @@
       "sourceMaps": true,
       "outFiles": [
         "${workspaceFolder}/examples/console/dist/**/*.js",
+        "${workspaceFolder}/examples/internet-search-mcp/dist/**/*.js",
         "${workspaceFolder}/packages/multiagent/dist/**/*.js"
       ]
     }
