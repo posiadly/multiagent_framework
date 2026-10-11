@@ -1,4 +1,4 @@
-import type { McpServerConfig } from '@proaxia/multiagent';
+import type { McpServerConfig } from '@posiadly/multiagent';
 
 /**
  * Build the external MCP list for the football agent.

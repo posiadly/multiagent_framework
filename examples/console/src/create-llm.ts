@@ -1,6 +1,6 @@
-import { createOllamaLlm, createOpenRouterLlm } from '@proaxia/multiagent';
-import type { Llm } from '@proaxia/multiagent';
-import { createSapOrchestrationLlm } from '@proaxia/multiagent/sap';
+import { createOllamaLlm, createOpenRouterLlm } from '@posiadly/multiagent';
+import type { Llm } from '@posiadly/multiagent';
+import { createSapOrchestrationLlm } from '@posiadly/multiagent/sap';
 
 export function createLlm(): Llm {
   const provider = process.env['LLM_PROVIDER']?.trim().toLowerCase();

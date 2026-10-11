@@ -1,4 +1,4 @@
-import { Runtime } from '@proaxia/multiagent';
+import { Runtime } from '@posiadly/multiagent';
 import { startInternetSearchMcp } from 'internet-search-mcp';
 import { ConsoleApp } from './cli/console-app.js';
 import { createLlm } from './create-llm.js';

@@ -1,5 +1,5 @@
 {
-  "name": "@proaxia/multiagent",
+  "name": "@posiadly/multiagent",
   "version": "1.0.0",
   "description": "Class-based multi-level multi-agent framework with a swappable LLM proxy",
   "repository": {
@@ -23,8 +23,12 @@
       "import": "./dist/sap.js"
     }
   },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "scripts": {
-    "build": "tsc -p tsconfig.json"
+    "build": "tsc -p tsconfig.json",
+    "prepublishOnly": "npm run build"
   },
   "peerDependencies": {
     "@sap-ai-sdk/orchestration": "^2.15.0"

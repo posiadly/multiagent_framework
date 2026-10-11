@@ -5,14 +5,14 @@ Class-based TypeScript framework for multi-level agent hierarchies with a custom
 - `delegate` — start a child agent on a task
 - `message` — ask/escalate to a **parent** (suspend + `WAITING`) or answer/resume a **child**
 
-The reusable library is `@proaxia/multiagent`. It does not read environment variables. The application constructs an LLM proxy and passes credentials, the model name, and any host into it.
+The reusable library is `@posiadly/multiagent`. It does not read environment variables. The application constructs an LLM proxy and passes credentials, the model name, and any host into it.
 
 ## Workspace
 
 One git repo, three npm packages:
 
 ```
-packages/multiagent/              # @proaxia/multiagent
+packages/multiagent/              # @posiadly/multiagent
 examples/internet-search-mcp/     # local MCP: web_search + read_url
 examples/console/                 # football console demo (multiagent-console)
 ```
@@ -23,17 +23,17 @@ examples/console/                 # football console demo (multiagent-console)
 
 | Proxy | Factory | Import |
 | --- | --- | --- |
-| SAP Orchestration | `createSapOrchestrationLlm({ model, serviceKey })` | `@proaxia/multiagent/sap` |
-| OpenRouter | `createOpenRouterLlm({ apiKey, model })` | `@proaxia/multiagent` |
-| Ollama | `createOllamaLlm({ baseUrl, apiKey, model })` | `@proaxia/multiagent` |
+| SAP Orchestration | `createSapOrchestrationLlm({ model, serviceKey })` | `@posiadly/multiagent/sap` |
+| OpenRouter | `createOpenRouterLlm({ apiKey, model })` | `@posiadly/multiagent` |
+| Ollama | `createOllamaLlm({ baseUrl, apiKey, model })` | `@posiadly/multiagent` |
 
 OpenRouter and Ollama share one OpenAI-compatible chat client. SAP Orchestration stays separate because it splits the latest tool results into `messages` and the rest into `messagesHistory`.
 
 `@sap-ai-sdk/orchestration` is an optional peer dependency of the library, so apps that use OpenRouter or Ollama do not load it. The console example depends on it directly.
 
 ```ts
-import { Agent, Runtime, createOllamaLlm } from "@proaxia/multiagent";
-import { createSapOrchestrationLlm } from "@proaxia/multiagent/sap";
+import { Agent, Runtime, createOllamaLlm } from "@posiadly/multiagent";
+import { createSapOrchestrationLlm } from "@posiadly/multiagent/sap";
 
 const runtime = new Runtime(
   createSapOrchestrationLlm({
@@ -105,7 +105,7 @@ Runtime tool traces (`delegate` / `message`) are printed on stderr.
 ## Defining agents
 
 ```ts
-import { Agent, Runtime, createOllamaLlm } from "@proaxia/multiagent";
+import { Agent, Runtime, createOllamaLlm } from "@posiadly/multiagent";
 
 const arsenal = new Agent("arsenal", "You are an Arsenal specialist…");
 const football = new Agent("football", "You are a football expert…");
@@ -132,7 +132,7 @@ Communication tools (`delegate`, `message`) are injected by the Runtime from the
 Each agent may attach multiple Streamable HTTP MCP servers. Config is supplied by the app (the library does not hardcode servers or read env):
 
 ```ts
-import { Agent, Runtime, type McpServerConfig } from "@proaxia/multiagent";
+import { Agent, Runtime, type McpServerConfig } from "@posiadly/multiagent";
 
 const mcps: McpServerConfig[] = [
   {
@@ -158,3 +158,34 @@ The console starts [`examples/internet-search-mcp`](examples/internet-search-mcp
 | `internet-search__read_url` | Page content via Jina Reader (`r.jina.ai`) |
 
 Set `JINA_API_KEY` for authenticated Reader access (higher limits). See [docs/03_mcp_attachment.md](docs/03_mcp_attachment.md).
+
+## Install from GitHub Packages
+
+The library is published as `@posiadly/multiagent` to GitHub Packages (`https://npm.pkg.github.com`), not to npmjs.com. A GitHub personal access token with `read:packages` is required. Do not commit the token.
+
+In the consumer project (or `~/.npmrc`):
+
+```
+@posiadly:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}
+```
+
+```bash
+npm install @posiadly/multiagent
+```
+
+```ts
+import { Agent, Runtime, createOpenRouterLlm } from "@posiadly/multiagent";
+```
+
+SAP stays `@posiadly/multiagent/sap`. The `internet-search` MCP demo is not part of this package.
+
+## Publish to GitHub Packages
+
+Publishing is done by [`.github/workflows/publish.yml`](.github/workflows/publish.yml). It runs `npm publish --workspace=@posiadly/multiagent` against `https://npm.pkg.github.com` using `GITHUB_TOKEN`. `prepublishOnly` builds `dist/` first.
+
+1. Bump `version` in [packages/multiagent/package.json](packages/multiagent/package.json). GitHub Packages rejects a version that was already published.
+2. Commit and push that change to `main`.
+3. Create a GitHub Release (tag can match the version, for example `v1.0.0`). Publishing the release starts the workflow.
+4. Alternatively, run the **Publish package** workflow manually from the Actions tab (`workflow_dispatch`). Use this only when the version in `package.json` is not already on the registry.
+5. After the first successful publish, open the package on GitHub and set its visibility to **public** if people who are not collaborators should be able to install it. Installs still need a token with `read:packages`.

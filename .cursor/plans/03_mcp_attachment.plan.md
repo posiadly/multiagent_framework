@@ -39,7 +39,7 @@ new Agent(id, systemPrompt, tools?, mcps?);
 await runtime.registerTree(root); // connects every agent's mcps
 ```
 
-`@proaxia/multiagent` does not read `process.env`. Callers pass URLs and keys.
+`@posiadly/multiagent` does not read `process.env`. Callers pass URLs and keys.
 
 On `registerTree`, the runtime walks the tree, connects each `McpServerConfig`, caches `Tool[]` per agent id, and merges them in `buildTools` after domain tools and before communication tools. Re-register closes previous MCP clients.
 

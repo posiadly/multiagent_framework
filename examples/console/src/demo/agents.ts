@@ -1,4 +1,4 @@
-import { Agent, type McpServerConfig } from '@proaxia/multiagent';
+import { Agent, type McpServerConfig } from '@posiadly/multiagent';
 
 /**
  * Demo tree:
